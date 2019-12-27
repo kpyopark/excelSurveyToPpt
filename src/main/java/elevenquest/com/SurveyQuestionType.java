@@ -1,6 +1,6 @@
 package elevenquest.com;
 
 
-public enum SurveyItemType {
+public enum SurveyQuestionType {
     CHOICE, TEXT
 }

@@ -1,7 +1,6 @@
 package elevenquest.com.surveyutil;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -22,11 +21,10 @@ public class ExcelSurveyLoader {
 
     }
 
-    public static List<ImmutablePair<String, Map<Surveyee, String>>> loadSurveyResult() throws Exception {
+    public static List<ImmutablePair<String, Map<Surveyee, String>>> loadSurveyResult(String filelocation) throws Exception {
         
         List<ImmutablePair<String, Map<Surveyee, String>>> surveyResults = new ArrayList<ImmutablePair<String, Map<Surveyee, String>>>();
         List<String> questionAndIdentities = new ArrayList<String>();
-        String filelocation = "/Users/kyunp/Documents/Private/2019.CS.CRM/2019.11.11_Smile_Dental.xlsx";
         FileInputStream excelFile = null;
         Workbook workbook = null;
     
@@ -47,7 +45,7 @@ public class ExcelSurveyLoader {
                     cellIterator.next();
                     cellIterator.next();
                 } else {
-                    // make survey information.
+                    // read survey information.
                     surveyee.timestamp = cellIterator.next().getDateCellValue();
                     surveyee.department = cellIterator.next().getStringCellValue();
                     surveyee.position = cellIterator.next().getStringCellValue();
@@ -74,9 +72,17 @@ public class ExcelSurveyLoader {
     }
 
     public static void main(String[] args) throws Exception {
-        List<ImmutablePair<String, Map<Surveyee, String>>> results = loadSurveyResult();
+        System.out.println("# of args :" + args.length);
+        if(args.length < 1) {
+            System.out.println("Usage java ExcelSurveyLoader target_file_path.");
+            System.exit(1);
+        }
+        List<ImmutablePair<String, Map<Surveyee, String>>> results = loadSurveyResult(args[0]);
         Survey survey = new Survey("201911.Smile");
-        results.stream().forEach(value -> survey.addSurveyItemResult(value.left, value.right));
-        System.out.println(survey);
+        results.stream().forEach(value -> {
+            SurveyQuestionResult.addSurveyQuestionResult(survey, value.left, value.right) ;
+        });
+        survey.recalculateSurveyResult();
+        survey.getSurveyQuestions().entrySet().stream().forEach(value -> System.out.println(value));
     }
 }
