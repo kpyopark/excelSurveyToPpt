@@ -6,23 +6,38 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class Survey {
 
-    String name;
+    String hospital;
+    String period;
+
     Map<String /* Question Number */, SurveyQuestion> questions;
 
-    public Survey(String name) {
-        this.name = name;
+    public Survey(String hospital, String period /** example. 201901 */) {
+        this.hospital = hospital;
+        this.period = period;
         this.questions = new HashMap<String, SurveyQuestion>();
     }
 
     public String getName() {
-        return this.name;
+        return this.hospital + "." + this.period;
+    }
+
+    public String getHostital() {
+        return this.hospital;
+    }
+
+    public String getPeriod() {
+        return this.period;
+    }
+
+    public String getFormattedPeriod() {
+        return this.period.substring(0,4) + ". " + this.period.substring(5);
     }
 
     public Map<String, SurveyQuestion> getSurveyQuestions() {
         return this.questions;
     }
 
-    public SurveyQuestion getSurveyQuestion(String question) {
+    public SurveyQuestion getSurveyQuestionFromText(String question) {
         ImmutablePair<String, String> mainSubCategory = SurveyQuestion.getCategory(question);
         if(mainSubCategory == null || mainSubCategory.left == null) {
             System.out.println("Main Category is empty. : " + question);

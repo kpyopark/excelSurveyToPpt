@@ -36,7 +36,7 @@ public class SurveyQuestionResult {
             targetIdentity = null;
             type = SurveyQuestionType.TEXT;
         }
-        SurveyQuestion surveyQuestion = survey.getSurveyQuestion(question);
+        SurveyQuestion surveyQuestion = survey.getSurveyQuestionFromText(question);
         if (surveyQuestion == null) {
             System.out.println("This question has no category number. We can't process this question item.[" + question + "]");
             return;
@@ -87,6 +87,10 @@ public class SurveyQuestionResult {
             currentSum++;
             surveyStatResult.put(result, currentSum);
         }
+    }
+
+    public Map<String, Integer> getSurveyStatResult() {
+        return this.surveyStatResult;
     }
 
     @Override

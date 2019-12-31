@@ -11,25 +11,35 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import java.io.FileInputStream;
-import java.io.File;
+import java.io.InputStream;
 
 import elevenquest.com.*;
 
 public class ExcelSurveyLoader {
 
-    public ExcelSurveyLoader() {
+    public static Survey loadSurvey(String hospital, String period, String fileLocation) throws Exception {
+        return loadSurvey(hospital, period, new FileInputStream(fileLocation));
+    }    
 
+    public static Survey loadSurvey(String hospital, String period, InputStream is) throws Exception {
+        List<ImmutablePair<String, Map<Surveyee, String>>> results = loadSurveyResult(is);
+        Survey survey = new Survey(hospital, period);
+        results.stream().forEach(value -> {
+            SurveyQuestionResult.addSurveyQuestionResult(survey, value.left, value.right) ;
+        });
+        survey.recalculateSurveyResult();
+        return survey;
     }
 
-    public static List<ImmutablePair<String, Map<Surveyee, String>>> loadSurveyResult(String filelocation) throws Exception {
+    public static List<ImmutablePair<String, Map<Surveyee, String>>> loadSurveyResult(InputStream is) throws Exception {
         
         List<ImmutablePair<String, Map<Surveyee, String>>> surveyResults = new ArrayList<ImmutablePair<String, Map<Surveyee, String>>>();
         List<String> questionAndIdentities = new ArrayList<String>();
-        FileInputStream excelFile = null;
+        InputStream excelFile = null;
         Workbook workbook = null;
     
         try {
-            excelFile = new FileInputStream(new File(filelocation));
+            excelFile = is;
             workbook = new XSSFWorkbook(excelFile);
             Sheet datatypeSheet = workbook.getSheetAt(0);
             Iterator<Row> iterator = datatypeSheet.iterator();
@@ -77,12 +87,7 @@ public class ExcelSurveyLoader {
             System.out.println("Usage java ExcelSurveyLoader target_file_path.");
             System.exit(1);
         }
-        List<ImmutablePair<String, Map<Surveyee, String>>> results = loadSurveyResult(args[0]);
-        Survey survey = new Survey("201911.Smile");
-        results.stream().forEach(value -> {
-            SurveyQuestionResult.addSurveyQuestionResult(survey, value.left, value.right) ;
-        });
-        survey.recalculateSurveyResult();
+        Survey survey = ExcelSurveyLoader.loadSurvey("Smile", "201911", args[0]);
         survey.getSurveyQuestions().entrySet().stream().forEach(value -> System.out.println(value));
     }
 }
