@@ -72,13 +72,14 @@ public class SurveyPowerPointWriter {
                 writer.addTextRun(questionText, 16.0, new Color(0xff000000));
             }
             Rectangle rect = new Rectangle(xMargin + (width + colSpace) * colCount++,
-                yHeader + yMargin + (height + rowSpace) * rowCount++, 
+                yHeader + yMargin + (height + rowSpace) * rowCount, 
                 width, 
                 height
             );
             writer.addPicture(rect, new ChoiceBarChart(result).exportAsPNG());
             if(colCount >= maxCol) {
                 colCount = 0;
+                rowCount++;
             }
             if(rowCount >= maxRow) {
                 rowCount = 0;
@@ -132,6 +133,7 @@ public class SurveyPowerPointWriter {
                 // TODO :
             }
         }
+        this.writer.writePowerPointFile();
     }
 
     public static void main(String[] args) throws Exception {
