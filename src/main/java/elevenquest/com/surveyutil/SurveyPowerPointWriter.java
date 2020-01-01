@@ -13,6 +13,7 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.awt.Color;
 
 public class SurveyPowerPointWriter {
@@ -49,25 +50,51 @@ public class SurveyPowerPointWriter {
         writer.setLineColor(new Color(0xffc00000));
         writer.addTextRun("응답 : 홍길동", 7.0, new Color(0xff000000));
     }
+    
+
+    private void addLegend(SurveyQuestion question) {
+    	int colCount = 0;
+    	int xMargin = 50;
+    	int yMargin = 10;
+    	int yHeader = 80;
+    	int width = 40;
+    	int height = 8;
+    	int colSpace = 6;
+    	for(String legend : question.getAllValidResultSet()) {
+    		Rectangle rect = new Rectangle(xMargin + (width + colSpace) * colCount,
+                    yHeader + yMargin, width, height); 
+    		writer.addPhraseAndTextRun(TextAlign.CENTER, rect, ChoiceBarChart.BAR_SHADOW_COLORS[colCount]);
+    		writer.addTextRun("", 5.0, ChoiceBarChart.BAR_SHADOW_COLORS[colCount], ChoiceBarChart.BAR_COLORS[colCount]);
+    		Rectangle textRect = new Rectangle(xMargin + (width + colSpace) * colCount,
+                    yHeader + yMargin + height, width, height);
+    		writer.addPhraseAndTextRun(TextAlign.CENTER, textRect, null);
+    		writer.addTextRun(legend, 5.0, ChoiceBarChart.BAR_SHADOW_COLORS[colCount]);
+    		colCount++;
+    	}
+    }
 
     private void addChoiceQuestionSlide(SurveyQuestion question) throws IOException {
         String questionText = question.getQuestion();
+        boolean needSlide = true;
         int rowCount = 0;
         int colCount = 0;
         int xMargin = 40;
         int yMargin = 30;
         int yHeader = 80;
-        int maxX = 640;
-        int maxY = 480;
-        int height = 50;
-        int width = 40;
+        int maxX = 720;
+        int maxY = 550;
+        int height = 100;
+        int width = 120;
+        int textHeight = 17;
         int maxRow = (maxY - yHeader - 2 * yMargin) / height;
         int maxCol = (maxX - 2 * xMargin) / width;
         int rowSpace = ((maxY - yHeader - 2 * yMargin) - maxRow * height) / (maxRow - 1);
         int colSpace = ((maxX - 2 * xMargin) - maxCol * width) / (maxCol - 1);
         for(SurveyQuestionResult result: question.getSurveyQuestionResult()) {
-            if(rowCount == 0) {
+            if(needSlide) {
+            	needSlide = false;
                 writer.addSlide(null);
+                addLegend(question);
                 writer.addPhraseAndTextRun(TextAlign.CENTER, new Rectangle(40, 36, 640, 46), null);
                 writer.addTextRun(questionText, 16.0, new Color(0xff000000));
             }
@@ -76,13 +103,20 @@ public class SurveyPowerPointWriter {
                 width, 
                 height
             );
-            writer.addPicture(rect, new ChoiceBarChart(result).exportAsPNG());
+            writer.addPicture(rect, new ChoiceBarChart(result, question.getMaxStatCount()).exportAsPNG());
+            Rectangle textRect = new Rectangle(rect.x, rect.y + height - textHeight + 3
+            		, width, textHeight);
+            writer.addPhraseAndTextRun(TextAlign.CENTER, textRect, null);
+            writer.addTextRun(result.getTargetIdentity().trim()
+            		, 9.0, Color.BLACK, Color.WHITE);
+            
             if(colCount >= maxCol) {
                 colCount = 0;
                 rowCount++;
             }
             if(rowCount >= maxRow) {
                 rowCount = 0;
+                needSlide = true;
             }
         }
     }

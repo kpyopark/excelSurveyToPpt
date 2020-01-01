@@ -72,17 +72,25 @@ public class PowerPointReportWriter {
        public void addPhraseAndTextRun(TextAlign align, Rectangle textAreaRect, Color lineColor) {
               this.shape = this.activeSlide.createTextBox();
               this.shape.setAnchor(textAreaRect);
+              this.shape.clearText();
               this.paragraph = this.shape.addNewTextParagraph();
               this.paragraph.setTextAlign(align);
               if (lineColor != null)
                      this.shape.setLineColor(lineColor);
        }
+       
+       public void addTextRun(String text, Double font, Color foreColor, Color backColor) {
+           XSLFTextRun textRun = this.paragraph.addNewTextRun();
+           textRun.setText(text);
+           textRun.setFontColor(foreColor);
+           textRun.setFontSize(font);
+           if(backColor != null) {
+        	   this.shape.setFillColor(backColor);
+           }
+       }
 
-       public void addTextRun(String text, Double font, Color color) {
-              XSLFTextRun textRun = this.paragraph.addNewTextRun();
-              textRun.setText(text);
-              textRun.setFontColor(color);
-              textRun.setFontSize(font);
+       public void addTextRun(String text, Double font, Color foreColor) {
+    	   addTextRun(text, font, foreColor, null);
        }
 
        public void addLineBreaker() {

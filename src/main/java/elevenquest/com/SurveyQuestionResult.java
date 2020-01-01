@@ -16,6 +16,8 @@ public class SurveyQuestionResult {
     private Map<String, Integer> surveyStatResult = new HashMap<String, Integer>();
 
     private static String[] IGNORABLE_RESULT = {"없", "모름", "모르", ".", "-"};
+    
+    private int maxStatCount = 5;
 
     public SurveyQuestionResult(SurveyQuestion surveyQuestion, String identity) {
         this.targetIdentity = identity;
@@ -79,12 +81,19 @@ public class SurveyQuestionResult {
         this.surveyStatResult.put(label, 0);
     }
     
+    public int getMaxStatCount() {
+    	return this.maxStatCount;
+    }
+    
     private void addSurveyResultRecord(Surveyee surveyee, String result) {
         this.surveyResult.put(surveyee, result);
         if (this.surveyQuestion.getSurveyType() == SurveyQuestionType.CHOICE) {
             Integer currentSum = surveyStatResult.get(result);
             if (currentSum == null) currentSum = 0;
             currentSum++;
+            if(maxStatCount < currentSum) {
+            	maxStatCount = currentSum;
+            }
             surveyStatResult.put(result, currentSum);
         }
     }

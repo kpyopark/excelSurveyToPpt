@@ -29,6 +29,12 @@ public class SurveyQuestion {
      * */ 
     Set<String> validResultSet = new HashSet<String>();
     
+    private int maxStatCount = 5; // for using Y-axis in Plot Chart.
+    
+    public Set<String> getAllValidResultSet() {
+    	return this.validResultSet;
+    }
+    
     private void makeEnumerationResultSet(final Set<String> distinctValues) {
         validResultSet.addAll(distinctValues);
     }
@@ -82,6 +88,10 @@ public class SurveyQuestion {
     public String getSubCategoryNumber() {
         return this.subCatgoryNumber;
     }
+    
+    public int getMaxStatCount() {
+    	return this.maxStatCount;
+    }
 
     public void setSurveyType(final SurveyQuestionType type) {
         this.surveyType = type;
@@ -99,6 +109,9 @@ public class SurveyQuestion {
             .stream()
             .collect(Collectors.toSet())
         );
+        if(result.getMaxStatCount() > this.maxStatCount) {
+        	this.maxStatCount = result.getMaxStatCount();
+        }
     }
 
     public SurveyQuestionType getSurveyType() {
