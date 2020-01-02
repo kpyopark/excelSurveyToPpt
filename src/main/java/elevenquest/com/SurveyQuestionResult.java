@@ -15,7 +15,7 @@ public class SurveyQuestionResult {
     private Map<Surveyee, String> surveyResult = new HashMap<Surveyee, String>();
     private Map<String, Integer> surveyStatResult = new HashMap<String, Integer>();
 
-    private static String[] IGNORABLE_RESULT = {"없", "모름", "모르", ".", "-"};
+    private static String[] IGNORABLE_RESULT = {"없", "모름", "모르", ".", "-", "모두다"};
     
     private int maxStatCount = 5;
 
@@ -64,6 +64,19 @@ public class SurveyQuestionResult {
         });
         return surveyTextResults;
     }
+    
+    public static boolean isProperTargetIdentity(String targetIdentity) {
+    	if(targetIdentity == null || targetIdentity.length() < 2)
+    		return false;
+    	boolean isIgnorableResult = false;
+        for(String word : IGNORABLE_RESULT) {
+            if (!isIgnorableResult && targetIdentity.contains(word)) {
+                isIgnorableResult = true;
+                break;
+            }
+        }
+        return !isIgnorableResult;
+    }
 
     public void setTargetIdentity(String targetIdentity) {
         this.targetIdentity = targetIdentity;
@@ -71,6 +84,23 @@ public class SurveyQuestionResult {
 
     public String getTargetIdentity() {
         return this.targetIdentity;
+    }
+    
+    public List<Surveyee> getSurveyeeListFromResult(String result) {
+    	List<Surveyee> rtn = new ArrayList<Surveyee>();
+    	this.surveyResult.forEach((key, value) -> {
+    		if(value.equals(result))
+    			rtn.add(key);
+    	});
+    	return rtn;
+    }
+    
+    public String getSurveyeeStringFromResult(String result) {
+    	String rtn = "";
+    	for(Surveyee surveyee : getSurveyeeListFromResult(result)) {
+    		rtn += surveyee.department + " " + surveyee.position + "\n";
+    	}
+    	return rtn.equals("") ? null : rtn;
     }
 
     public Map<Surveyee, String> getSurveyResult() {

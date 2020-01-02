@@ -8,9 +8,11 @@ import elevenquest.com.Survey;
 import elevenquest.com.SurveyQuestion;
 import elevenquest.com.SurveyQuestionResult;
 import elevenquest.com.SurveyQuestionType;
+import elevenquest.com.Surveyee;
 
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,13 +46,6 @@ public class SurveyPowerPointWriter {
         writer.addTextRun("Data", 36.0, new Color( 0xff0070c0));
         writer.addTextRun(" ", 36.0, new Color( 0xff0070c0));
     }
-
-    private void addMarkableResult(String mark) {
-        writer.addPhraseAndTextRun(TextAlign.CENTER, new Rectangle(55, 150, 75, 97), null);
-        writer.setLineColor(new Color(0xffc00000));
-        writer.addTextRun("응답 : 홍길동", 7.0, new Color(0xff000000));
-    }
-    
 
     private void addLegend(SurveyQuestion question) {
     	int colCount = 0;
@@ -98,7 +93,7 @@ public class SurveyPowerPointWriter {
                 writer.addPhraseAndTextRun(TextAlign.CENTER, new Rectangle(40, 36, 640, 46), null);
                 writer.addTextRun(questionText, 16.0, new Color(0xff000000));
             }
-            Rectangle rect = new Rectangle(xMargin + (width + colSpace) * colCount++,
+            Rectangle rect = new Rectangle(xMargin + (width + colSpace) * colCount,
                 yHeader + yMargin + (height + rowSpace) * rowCount, 
                 width, 
                 height
@@ -109,7 +104,19 @@ public class SurveyPowerPointWriter {
             writer.addPhraseAndTextRun(TextAlign.CENTER, textRect, null);
             writer.addTextRun(result.getTargetIdentity().trim()
             		, 9.0, Color.BLACK, Color.WHITE);
-            
+            String dislikePeople = result.getSurveyeeStringFromResult("아니다");
+            List<Surveyee> dislikePeopleList = result.getSurveyeeListFromResult("아니다");
+            if(dislikePeople != null) {
+            	Rectangle dislikeRect = new Rectangle(xMargin + 28 + (width + colSpace) * colCount,
+                        yHeader + yMargin + 5 + (height + rowSpace) * rowCount, 
+                        width - 35, 
+                        13 * dislikePeopleList.size()
+                    ); 
+            	writer.addPhraseAndTextRun(TextAlign.LEFT, dislikeRect, ChoiceBarChart.BAR_COLOR3);
+            	writer.addTextRun(dislikePeople
+                		, 7.0, ChoiceBarChart.BAR_COLOR3);
+            }
+            colCount++;
             if(colCount >= maxCol) {
                 colCount = 0;
                 rowCount++;
@@ -120,41 +127,66 @@ public class SurveyPowerPointWriter {
             }
         }
     }
-
-    private void addTextQuestionSlide() {
+    
+    private void addTableHeaderRowInTextQuestionSlide(SurveyQuestion question) {
         writer.addSlide(null);
         writer.addPhraseAndTextRun(TextAlign.CENTER, new Rectangle(40, 36, 640, 46), null);
-        writer.addTextRun("2-1. Question", 16.0, new Color(0xff000000));
+        writer.addTextRun(question.getQuestion(), 16.0, new Color(0xff000000));
         writer.addTable(new Rectangle(33, 109, 658, 197));
         // Header
         writer.addRow(32.32496062992126);
-        writer.addCell(84.37566929133858);
+        writer.addCell(84.37566929133858, Color.BLACK, new Color(163,198,215));
         writer.addParagraphToCell(TextAlign.CENTER);
         writer.addTextRun("부서 ", 10.0, new Color(0xff000000));
-        writer.addCell(50.62535433070866);
+        writer.addCell(50.62535433070866, Color.BLACK, new Color(163,198,215));
         writer.addParagraphToCell(TextAlign.CENTER);
         writer.addTextRun("직급", 10.0, new Color(0xff000000));
-        writer.addCell(101.25070866141732);
+        writer.addCell(101.25070866141732, Color.BLACK, new Color(163,198,215));
         writer.addParagraphToCell(TextAlign.CENTER);
         writer.addTextRun("대상", 10.0, new Color(0xff000000));
-        writer.addCell(421.87795275590554);
+        writer.addCell(421.87795275590554, Color.BLACK, new Color(163,198,215));
         writer.addParagraphToCell(TextAlign.CENTER);
         writer.addTextRun("내용", 10.0, new Color(0xff000000));
-        // Contents
-        writer.addRow(32.32496062992126);
-        writer.addCell(84.37566929133858);
-        writer.addParagraphToCell(TextAlign.LEFT);
-        writer.addTextRun("Department", 10.0, new Color(0xff000000));
-        writer.addCell(50.62535433070866);
-        writer.addParagraphToCell(TextAlign.LEFT);
-        writer.addTextRun("Position", 10.0, new Color(0xff000000));
-        writer.addCell(101.25070866141732);
-        writer.addParagraphToCell(TextAlign.LEFT);
-        writer.addTextRun("Target", 10.0, new Color(0xff000000));
-        writer.addCell(421.87795275590554);
-        writer.addParagraphToCell(TextAlign.LEFT);
-        writer.addTextRun("Contents", 10.0, new Color(0xff000000));
-        // Repeat
+    }
+
+    private void addTextQuestionSlide(SurveyQuestion question) {
+        // TODO :
+        List<SurveyQuestion> relatedQuestions = question.getRelatedQuestions();
+        SurveyQuestionResult baseResult = relatedQuestions.get(0).getSurveyQuestionResult().get(0);
+        int maxX = 720;
+        int maxY = 550;
+        int yMargin = 30;
+        int yHeader = 80;
+        int rowCount = 0;
+        int rowHeight = 40;
+        boolean needSlide = true;
+        for(Surveyee surveyee : baseResult.getSurveyResult().keySet()) {
+        	if(SurveyQuestionResult.isProperTargetIdentity(baseResult.getSurveyResult().get(surveyee))) {
+        		if(needSlide) {
+        			needSlide = false;
+        	    	addTableHeaderRowInTextQuestionSlide(question);
+        		}
+                writer.addRow(rowHeight);
+                writer.addCell(84.37566929133858);
+                writer.addParagraphToCell(TextAlign.LEFT);
+                writer.addTextRun(surveyee.department, 10.0, new Color(0xff000000));
+                writer.addCell(50.62535433070866);
+                writer.addParagraphToCell(TextAlign.LEFT);
+                writer.addTextRun(surveyee.position, 10.0, new Color(0xff000000));
+                writer.addCell(101.25070866141732);
+                writer.addParagraphToCell(TextAlign.LEFT);
+                writer.addTextRun(baseResult.getSurveyResult().get(surveyee), 10.0, new Color(0xff000000));
+                writer.addCell(421.87795275590554);
+                writer.addParagraphToCell(TextAlign.LEFT);
+                writer.addTextRun(relatedQuestions.get(1).getSurveyQuestionResult().get(0).getSurveyResult().get(surveyee)
+                		, 10.0, new Color(0xff000000));
+        	}
+        	rowCount++;
+        	if(rowCount * rowHeight > (maxY - yMargin - yHeader) ) {
+        		rowCount = 0;
+        		needSlide = true;
+        	}
+        }
     }
 
     public void writeSurveyReport() throws IOException {
@@ -164,15 +196,23 @@ public class SurveyPowerPointWriter {
             if(question.getSurveyType() == SurveyQuestionType.CHOICE) {
                 this.addChoiceQuestionSlide(question);
             } else {
-                // TODO :
+            	this.addTextQuestionSlide(question);
             }
         }
         this.writer.writePowerPointFile();
     }
-
+    
+    public static void convertExcelToPowerpoint(String hospital, String period, String excelLocation, String destination) {
+    	try {
+            Survey survey = ExcelSurveyLoader.loadSurvey(hospital, period, excelLocation);
+            SurveyPowerPointWriter surveyWriter = new SurveyPowerPointWriter(destination, survey);
+            surveyWriter.writeSurveyReport();
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
     public static void main(String[] args) throws Exception {
-        Survey survey = ExcelSurveyLoader.loadSurvey("Smile", "201911", args[0]);
-        SurveyPowerPointWriter surveyWriter = new SurveyPowerPointWriter(args[1], survey);
-        surveyWriter.writeSurveyReport();
+    	convertExcelToPowerpoint("Smile", "201911", args[0], args[1]);
     }
 }

@@ -3,6 +3,7 @@ package elevenquest.com.surveyutil;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import org.apache.poi.sl.usermodel.TableCell.BorderEdge;
 import org.apache.poi.sl.usermodel.TextParagraph.TextAlign;
 import org.apache.poi.xslf.usermodel.SlideLayout;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
@@ -116,10 +117,19 @@ public class PowerPointReportWriter {
               this.activeRow.setHeight(height);
               this.activeCol = 0;
        }
-
+       
        public void addCell(double width) {
+    	   addCell(width, Color.BLACK, null);
+       }
+
+       public void addCell(double width, Color lineColor, Color fillColor) {
               this.activeCell = this.activeRow.addCell();
               this.table.setColumnWidth(this.activeCol++, width);
+              this.activeCell.setBorderColor(BorderEdge.bottom, lineColor);
+              this.activeCell.setBorderColor(BorderEdge.top, lineColor);
+              this.activeCell.setBorderColor(BorderEdge.left, lineColor);
+              this.activeCell.setBorderColor(BorderEdge.right, lineColor);
+              if(fillColor != null) this.activeCell.setFillColor(fillColor);
        }
 
        public void addParagraphToCell(TextAlign align) {
